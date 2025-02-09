@@ -1,7 +1,7 @@
 
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowRight, Code, Palette, Layout, Users, Tool } from "lucide-react";
+import { ArrowRight, Code, Palette, Layout, Users, Cog } from "lucide-react";
 
 const Index = () => {
   const skills = [
@@ -32,7 +32,7 @@ const Index = () => {
     {
       title: "Geliştirme Araçları",
       description: "Modern geliştirme araçları kullanımı",
-      icon: <Tool className="w-6 h-6" />,
+      icon: <Cog className="w-6 h-6" />,
       badges: ["Git", "VS Code", "Docker"],
     },
   ];
