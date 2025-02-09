@@ -14,7 +14,7 @@
     --popover: 0 0% 100%;
     --popover-foreground: 240 10% 3.9%;
  
-    --primary: 240 5.9% 10%;
+    --primary: 340 82% 52%;
     --primary-foreground: 0 0% 98%;
  
     --secondary: 240 4.8% 95.9%;
@@ -46,10 +46,12 @@
   }
 }
 
-.glass-card {
-  @apply backdrop-blur-sm bg-white/30 border border-white/20 shadow-xl;
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
 }
 
-.hover-lift {
-  @apply transition-transform duration-300 hover:-translate-y-1;
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
+
