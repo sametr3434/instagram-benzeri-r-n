@@ -1,11 +1,11 @@
-
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Heart, MessageCircle, Share2, Image as ImageIcon, Camera, Sun, Moon } from "lucide-react";
+import { Heart, MessageCircle, Share2, Image as ImageIcon, Camera, Sun, Moon, Send, Plus } from "lucide-react";
 import { useState, useEffect } from "react";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
 
 interface Post {
   id: number;
@@ -24,9 +24,38 @@ interface Story {
   storyImage: string;
 }
 
+interface Message {
+  id: number;
+  sender: string;
+  content: string;
+  timestamp: string;
+}
+
 const Index = () => {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [selectedStory, setSelectedStory] = useState<Story | null>(null);
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [isCreatePostOpen, setIsCreatePostOpen] = useState(false);
+  const [newMessage, setNewMessage] = useState("");
+  const [newPost, setNewPost] = useState({
+    caption: "",
+    imageUrl: "",
+  });
+  const [messages, setMessages] = useState<Message[]>([
+    {
+      id: 1,
+      sender: "ayşegül",
+      content: "Selam! Nasılsın?",
+      timestamp: "14:30",
+    },
+    {
+      id: 2,
+      sender: "mehmet",
+      content: "Hey! Yeni projeni gördüm, harika olmuş!",
+      timestamp: "15:45",
+    },
+  ]);
+
   const [posts, setPosts] = useState<Post[]>([
     {
       id: 1,
@@ -101,6 +130,37 @@ const Index = () => {
     document.documentElement.classList.toggle('dark');
   };
 
+  const handleSendMessage = () => {
+    if (newMessage.trim()) {
+      const message: Message = {
+        id: messages.length + 1,
+        sender: "ben",
+        content: newMessage,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      };
+      setMessages([...messages, message]);
+      setNewMessage("");
+    }
+  };
+
+  const handleCreatePost = () => {
+    if (newPost.caption && newPost.imageUrl) {
+      const post: Post = {
+        id: posts.length + 1,
+        username: "ben",
+        userAvatar: "https://images.unsplash.com/photo-1649972904349-6e44c42644a7",
+        imageUrl: newPost.imageUrl,
+        caption: newPost.caption,
+        likes: 0,
+        comments: 0,
+        isLiked: false,
+      };
+      setPosts([post, ...posts]);
+      setNewPost({ caption: "", imageUrl: "" });
+      setIsCreatePostOpen(false);
+    }
+  };
+
   useEffect(() => {
     if (isDarkMode) {
       document.documentElement.classList.add('dark');
@@ -111,13 +171,15 @@ const Index = () => {
 
   return (
     <div className={`min-h-screen ${isDarkMode ? 'dark:bg-gray-900 dark:text-white' : 'bg-gray-50'}`}>
-      {/* Header */}
       <header className={`fixed top-0 left-0 right-0 ${isDarkMode ? 'dark:bg-gray-800' : 'bg-white'} border-b border-gray-200 z-50`}>
         <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
           <h1 className="text-xl font-bold">Instagram Clone</h1>
           <div className="flex items-center space-x-4">
             <Button variant="ghost" size="icon" onClick={toggleDarkMode}>
               {isDarkMode ? <Sun className="h-6 w-6" /> : <Moon className="h-6 w-6" />}
+            </Button>
+            <Button variant="ghost" size="icon" onClick={() => setIsCreatePostOpen(true)}>
+              <Plus className="h-6 w-6" />
             </Button>
             <Button variant="ghost" size="icon">
               <Camera className="h-6 w-6" />
@@ -130,9 +192,7 @@ const Index = () => {
         </div>
       </header>
 
-      {/* Main Content */}
       <main className="max-w-2xl mx-auto pt-16 pb-20 px-4">
-        {/* Stories */}
         <div className="flex overflow-x-auto space-x-4 p-4 -mx-4 mb-6 scrollbar-hide">
           {stories.map((story, i) => (
             <div 
@@ -152,33 +212,99 @@ const Index = () => {
           ))}
         </div>
 
-        {/* Story Dialog */}
         <Dialog open={!!selectedStory} onOpenChange={() => setSelectedStory(null)}>
           <DialogContent className="sm:max-w-md">
-            {selectedStory && (
-              <div className="relative aspect-square">
-                <img
-                  src={selectedStory.storyImage}
-                  alt="Story"
-                  className="w-full h-full object-cover rounded-lg"
-                />
-                <div className="absolute top-4 left-4 flex items-center space-x-2">
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src={selectedStory.userAvatar} />
-                    <AvatarFallback>{selectedStory.username[0].toUpperCase()}</AvatarFallback>
-                  </Avatar>
-                  <span className="text-white font-semibold">{selectedStory.username}</span>
+            <DialogTitle>Hikaye</DialogTitle>
+            <DialogDescription>
+              {selectedStory && (
+                <div className="relative aspect-square">
+                  <img
+                    src={selectedStory.storyImage}
+                    alt="Story"
+                    className="w-full h-full object-cover rounded-lg"
+                  />
+                  <div className="absolute top-4 left-4 flex items-center space-x-2">
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={selectedStory.userAvatar} />
+                      <AvatarFallback>{selectedStory.username[0].toUpperCase()}</AvatarFallback>
+                    </Avatar>
+                    <span className="text-white font-semibold">{selectedStory.username}</span>
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
+            </DialogDescription>
           </DialogContent>
         </Dialog>
 
-        {/* Posts */}
+        <Dialog open={isChatOpen} onOpenChange={setIsChatOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogTitle>Mesajlar</DialogTitle>
+            <div className="flex flex-col space-y-4 max-h-[60vh] overflow-y-auto">
+              {messages.map((message) => (
+                <div
+                  key={message.id}
+                  className={`flex ${
+                    message.sender === "ben" ? "justify-end" : "justify-start"
+                  }`}
+                >
+                  <div
+                    className={`rounded-lg px-4 py-2 max-w-[70%] ${
+                      message.sender === "ben"
+                        ? "bg-blue-500 text-white"
+                        : "bg-gray-200"
+                    }`}
+                  >
+                    <p>{message.content}</p>
+                    <span className="text-xs opacity-70">{message.timestamp}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="flex items-center space-x-2 mt-4">
+              <Input
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+                placeholder="Mesajınızı yazın..."
+                className="flex-1"
+                onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
+              />
+              <Button onClick={handleSendMessage}>
+                <Send className="h-5 w-5" />
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={isCreatePostOpen} onOpenChange={setIsCreatePostOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogTitle>Yeni Gönderi Oluştur</DialogTitle>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">Görsel URL</label>
+                <Input
+                  value={newPost.imageUrl}
+                  onChange={(e) => setNewPost({ ...newPost, imageUrl: e.target.value })}
+                  placeholder="Görsel URL'sini girin"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Açıklama</label>
+                <Textarea
+                  value={newPost.caption}
+                  onChange={(e) => setNewPost({ ...newPost, caption: e.target.value })}
+                  placeholder="Gönderiniz için bir açıklama yazın..."
+                />
+              </div>
+              <Button onClick={handleCreatePost} className="w-full">
+                Paylaş
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
         <div className="space-y-6">
           {posts.map((post) => (
             <Card key={post.id} className={`overflow-hidden ${isDarkMode ? 'dark:bg-gray-800' : ''}`}>
-              {/* Post Header */}
               <div className="p-4 flex items-center space-x-2">
                 <Avatar className="h-8 w-8">
                   <AvatarImage src={post.userAvatar} />
@@ -186,8 +312,6 @@ const Index = () => {
                 </Avatar>
                 <span className="font-semibold">{post.username}</span>
               </div>
-
-              {/* Post Image */}
               <div className="relative aspect-square">
                 <img
                   src={post.imageUrl}
@@ -195,8 +319,6 @@ const Index = () => {
                   className="absolute w-full h-full object-cover"
                 />
               </div>
-
-              {/* Post Actions */}
               <div className="p-4 space-y-3">
                 <div className="flex items-center space-x-4">
                   <Button
@@ -214,7 +336,6 @@ const Index = () => {
                     <Share2 className="h-6 w-6" />
                   </Button>
                 </div>
-
                 <div className="space-y-2">
                   <p className="font-semibold">{post.likes} beğeni</p>
                   <p>
@@ -225,8 +346,6 @@ const Index = () => {
                     {post.comments} yorumun tümünü gör
                   </p>
                 </div>
-
-                {/* Comment Input */}
                 <div className="flex items-center space-x-2">
                   <Input
                     type="text"
@@ -243,7 +362,6 @@ const Index = () => {
         </div>
       </main>
 
-      {/* Bottom Navigation */}
       <nav className={`fixed bottom-0 left-0 right-0 ${isDarkMode ? 'dark:bg-gray-800' : 'bg-white'} border-t border-gray-200`}>
         <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-around">
           <Button variant="ghost" size="icon">
@@ -252,7 +370,7 @@ const Index = () => {
           <Button variant="ghost" size="icon" className="text-pink-500">
             <Heart className="h-6 w-6" />
           </Button>
-          <Button variant="ghost" size="icon">
+          <Button variant="ghost" size="icon" onClick={() => setIsChatOpen(true)}>
             <MessageCircle className="h-6 w-6" />
           </Button>
         </div>
