@@ -1,11 +1,13 @@
+
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Heart, MessageCircle, Share2, Image as ImageIcon, Camera, Sun, Moon, Send, Plus } from "lucide-react";
+import { Heart, MessageCircle, Share2, Image as ImageIcon, Camera, Sun, Moon, Send, Plus, ChevronDown } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface Post {
   id: number;
@@ -27,6 +29,7 @@ interface Story {
 interface Message {
   id: number;
   sender: string;
+  receiver: string;
   content: string;
   timestamp: string;
 }
@@ -37,20 +40,32 @@ const Index = () => {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isCreatePostOpen, setIsCreatePostOpen] = useState(false);
   const [newMessage, setNewMessage] = useState("");
+  const [selectedReceiver, setSelectedReceiver] = useState("");
   const [newPost, setNewPost] = useState({
     caption: "",
     imageUrl: "",
   });
+
+  const users = [
+    { username: "ayşegül", avatar: "https://images.unsplash.com/photo-1649972904349-6e44c42644a7" },
+    { username: "mehmet", avatar: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158" },
+    { username: "zeynep", avatar: "https://images.unsplash.com/photo-1649972904349-6e44c42644a7" },
+    { username: "emre", avatar: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158" },
+    { username: "elif", avatar: "https://images.unsplash.com/photo-1649972904349-6e44c42644a7" },
+  ];
+
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 1,
       sender: "ayşegül",
+      receiver: "ben",
       content: "Selam! Nasılsın?",
       timestamp: "14:30",
     },
     {
       id: 2,
       sender: "mehmet",
+      receiver: "ben",
       content: "Hey! Yeni projeni gördüm, harika olmuş!",
       timestamp: "15:45",
     },
@@ -131,10 +146,11 @@ const Index = () => {
   };
 
   const handleSendMessage = () => {
-    if (newMessage.trim()) {
+    if (newMessage.trim() && selectedReceiver) {
       const message: Message = {
         id: messages.length + 1,
         sender: "ben",
+        receiver: selectedReceiver,
         content: newMessage,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       };
@@ -239,8 +255,33 @@ const Index = () => {
         <Dialog open={isChatOpen} onOpenChange={setIsChatOpen}>
           <DialogContent className="sm:max-w-md">
             <DialogTitle>Mesajlar</DialogTitle>
+            <div className="mb-4">
+              <Select onValueChange={setSelectedReceiver} value={selectedReceiver}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Kime mesaj göndermek istiyorsunuz?" />
+                </SelectTrigger>
+                <SelectContent>
+                  {users.map((user) => (
+                    <SelectItem key={user.username} value={user.username}>
+                      <div className="flex items-center space-x-2">
+                        <Avatar className="h-6 w-6">
+                          <AvatarImage src={user.avatar} />
+                          <AvatarFallback>{user.username[0].toUpperCase()}</AvatarFallback>
+                        </Avatar>
+                        <span>{user.username}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
             <div className="flex flex-col space-y-4 max-h-[60vh] overflow-y-auto">
-              {messages.map((message) => (
+              {messages
+                .filter(message => 
+                  (message.sender === selectedReceiver && message.receiver === "ben") ||
+                  (message.sender === "ben" && message.receiver === selectedReceiver)
+                )
+                .map((message) => (
                 <div
                   key={message.id}
                   className={`flex ${
@@ -268,7 +309,7 @@ const Index = () => {
                 className="flex-1"
                 onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
               />
-              <Button onClick={handleSendMessage}>
+              <Button onClick={handleSendMessage} disabled={!selectedReceiver}>
                 <Send className="h-5 w-5" />
               </Button>
             </div>
